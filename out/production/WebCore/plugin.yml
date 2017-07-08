@@ -1,0 +1,7 @@
+name: WebCore
+version: 1.4
+main: net.veilmc.webcore.Main
+author: sergivb01, ltd
+commands:
+    info:
+        description: example
