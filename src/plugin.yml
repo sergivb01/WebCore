@@ -6,3 +6,4 @@ commands:
     syncsettings:
         description: example
     register:
+    aboutsettings:

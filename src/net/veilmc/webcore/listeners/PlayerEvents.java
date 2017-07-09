@@ -19,10 +19,6 @@ public class PlayerEvents implements Listener{
     public void onPlayerJoin(PlayerJoinEvent e){
         Player p = e.getPlayer();
 
-        p.sendMessage(ChatColor.LIGHT_PURPLE + p.getUniqueId().toString()); //Printing UUID
-        Bukkit.getConsoleSender().sendMessage(p.getUniqueId().toString()); //Printing UUID
-
-
         if(!main.getStorageBackend().checkProfile(p)){
             main.getStorageBackend().createProfile(p);
             p.sendMessage(ChatColor.GOLD + "Your profile has been created!");

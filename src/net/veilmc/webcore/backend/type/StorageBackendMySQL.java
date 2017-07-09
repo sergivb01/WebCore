@@ -1,5 +1,6 @@
 package net.veilmc.webcore.backend.type;
 
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import me.sergivb01.base.BasePlugin;
 import me.sergivb01.base.user.BaseUser;
 import net.veilmc.webcore.Main;
@@ -17,6 +18,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class StorageBackendMySQL implements StorageBackend {
 
@@ -127,6 +130,35 @@ public class StorageBackendMySQL implements StorageBackend {
         }
 
         return isreg;
+    }
+
+    @Override
+    public HashMap<String, Boolean> getData(Player player){
+        HashMap<String, Boolean> settings = new HashMap<>();
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            connection = poolManager.getConnection();
+            preparedStatement = connection.prepareStatement("SELECT * FROM `player_settings` WHERE `player_uuid`='" + player.getUniqueId().toString() + "'");
+            resultSet = preparedStatement.executeQuery();
+
+            settings.put("privatemessages", resultSet.getBoolean("privatemessages"));
+            settings.put("sounds", resultSet.getBoolean("sounds"));
+            settings.put("globalchat", resultSet.getBoolean("globalchat"));
+            settings.put("staffchat", resultSet.getBoolean("staffchat"));
+            settings.put("staffchatview", resultSet.getBoolean("staffchatview"));
+            settings.put("staffscoreboard", resultSet.getBoolean("staffscoreboard"));
+
+            preparedStatement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            poolManager.close(connection, preparedStatement, resultSet);
+        }
+
+        return settings;
     }
 
     @Override

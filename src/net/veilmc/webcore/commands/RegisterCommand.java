@@ -44,8 +44,6 @@ public class RegisterCommand implements CommandExecutor {
             return false;
         }
 
-        //TODO: Make a password strength checker
-
         if(!Objects.equals(args[0], args[1])){
             player.sendMessage(ChatColor.RED + "Password do not match.");
             return false;
