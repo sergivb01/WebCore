@@ -1,6 +1,7 @@
 package net.veilmc.webcore.listeners;
 
 import net.veilmc.webcore.Main;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,7 +19,18 @@ public class PlayerEvents implements Listener{
     public void onPlayerJoin(PlayerJoinEvent e){
         Player p = e.getPlayer();
 
-        p.sendMessage(ChatColor.RED + "https://veilhcf.us/u/" + p.getName());
+        p.sendMessage(ChatColor.LIGHT_PURPLE + p.getUniqueId().toString()); //Printing UUID
+        Bukkit.getConsoleSender().sendMessage(p.getUniqueId().toString()); //Printing UUID
+
+
+        if(!main.getStorageBackend().checkProfile(p)){
+            main.getStorageBackend().createProfile(p);
+            p.sendMessage(ChatColor.GOLD + "Your profile has been created!");
+        }else{
+            p.sendMessage(ChatColor.RED + "You profile already exists, not creating a new one...");
+        }
+
+
     }
 
 

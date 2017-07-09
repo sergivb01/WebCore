@@ -1,18 +1,22 @@
 package net.veilmc.webcore.backend.type;
 
+import me.sergivb01.base.BasePlugin;
+import me.sergivb01.base.user.BaseUser;
 import net.veilmc.webcore.Main;
 import net.veilmc.webcore.backend.DatabaseCredentials;
 import net.veilmc.webcore.backend.StorageBackend;
 import net.veilmc.webcore.backend.connection.ConnectionPoolManager;
+import net.veilmc.webcore.utils.PermissionsExUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.sql.*;
-import java.util.UUID;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class StorageBackendMySQL implements StorageBackend {
 
@@ -40,10 +44,24 @@ public class StorageBackendMySQL implements StorageBackend {
                 PreparedStatement statement = null;
 
                 try {
+                    BaseUser baseUser = BasePlugin.getPlugin().getUserManager().getUser(player.getUniqueId());
                     connection = StorageBackendMySQL.this.poolManager.getConnection();
-                    statement = connection.prepareStatement("INSERT INTO `hcf_statistics` (`player_name`, `player_uuid`) VALUES (?, ?)");
+                    statement = connection.prepareStatement("INSERT INTO `player_credentials` (`player_name`, `player_uuid`, `password`) VALUES (?, ?, ?)");
                     statement.setString(1, player.getName());
                     statement.setString(2, player.getUniqueId().toString());
+                    statement.setString(3, "");
+                    statement.executeUpdate();
+                    statement.close();
+
+                    statement = connection.prepareStatement("INSERT INTO `player_settings` (`player_uuid`, `privatemessages`, `sounds`, `globalchat`, `staffchat`, `staffchatview`, `staffscoreboard`, `rank`) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                    statement.setString(1, player.getUniqueId().toString());
+                    statement.setBoolean(2, baseUser.isMessagesVisible());
+                    statement.setBoolean(3, baseUser.isMessagingSounds());
+                    statement.setBoolean(4, baseUser.isGlobalChatVisible());
+                    statement.setBoolean(5, baseUser.isInStaffChat());
+                    statement.setBoolean(6, baseUser.isStaffChatVisible());
+                    statement.setBoolean(7, baseUser.isGlintEnabled());
+                    statement.setString(8, PermissionsExUtils.getRanks(player));
                     statement.executeUpdate();
                     statement.close();
                 }
@@ -62,29 +80,101 @@ public class StorageBackendMySQL implements StorageBackend {
     }
 
     @Override
-    public void saveProfile(Player player) {
+    public boolean checkProfile(Player player){
+        boolean isreg = false;
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            connection = poolManager.getConnection();
+            preparedStatement = connection.prepareStatement("SELECT * FROM `player_credentials` WHERE `player_uuid`='" + player.getUniqueId().toString() + "'");
+            resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.isBeforeFirst()) {
+                isreg = true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            poolManager.close(connection, preparedStatement, resultSet);
+        }
+
+        return isreg;
+    }
+
+    @Override
+    public boolean checkRegistered(Player player){
+        boolean isreg = false;
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            connection = poolManager.getConnection();
+            preparedStatement = connection.prepareStatement("SELECT * FROM `player_credentials` WHERE `player_uuid`='" + player.getUniqueId().toString() + "'");
+            resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.isBeforeFirst()) {
+                if(!resultSet.getString("password").isEmpty()){
+                    isreg = true;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            poolManager.close(connection, preparedStatement, resultSet);
+        }
+
+        return isreg;
+    }
+
+    @Override
+    public void registerPlayer(Player player, String passwd){
+        new BukkitRunnable() {
+            public void run() {
+                Connection connection = null;
+                PreparedStatement statement = null;
+
+                try {
+                    connection = StorageBackendMySQL.this.poolManager.getConnection();
+                    statement = connection.prepareStatement("UPDATE `player_credentials` SET `player_name`=?, `password`=? WHERE `player_uuid`='" + player.getUniqueId().toString() + "'");
+                    statement.setString(1, player.getName());
+                    statement.setString(2, passwd);
+                    statement.executeUpdate();
+                    statement.close();
+                }
+                catch (SQLException e) {
+                    if (!e.getMessage().toLowerCase().contains("duplicate") && !e.getMessage().toLowerCase().contains("not unique")) {
+                        Main.getInstance().getLogger().severe("Failed registerUser -> " + player.getName());
+                        e.printStackTrace();
+                        this.cancel();
+                    }
+                }
+                finally {
+                    poolManager.close(connection, statement, null);
+                }
+            }
+        }.runTaskAsynchronously(Main.getInstance());
+    }
+
+    @Override
+    public void saveSettings(Player player) {
         new BukkitRunnable() {
             public void run() {
                 Connection connection = null;
                 PreparedStatement statement = null;
                 try {
+                    BaseUser baseUser = BasePlugin.getPlugin().getUserManager().getUser(player.getUniqueId());
                     connection = StorageBackendMySQL.this.poolManager.getConnection();
-                    statement = connection.prepareStatement("UPDATE `hcf_statistics` SET `player_name`=?, `playtime`=?, `faction_name`=?, `kills`=?, `deaths`=?, `balance`=?, `lives`=?, `diamonds_mined`=?, `emeralds_mined`=?, `gold_mined`=?, `redstone_mined`=?, `lapis_mined`=?, `iron_mined`=?, `coal_mined`=? WHERE `player_uuid`=?");
-                    statement.setString(1, player.getName());
-                    statement.setLong(2, 515615);
-                    statement.setString(3, "adw");
-                    statement.setInt(4, 1);
-                    statement.setInt(5, 1);
-                    statement.setInt(6, 1);
-                    statement.setInt(7, 1);
-                    statement.setInt(8, player.getStatistic(Statistic.MINE_BLOCK, Material.DIAMOND_ORE));
-                    statement.setInt(9, player.getStatistic(Statistic.MINE_BLOCK, Material.EMERALD_ORE));
-                    statement.setInt(10, player.getStatistic(Statistic.MINE_BLOCK, Material.GOLD_ORE));
-                    statement.setInt(11, player.getStatistic(Statistic.MINE_BLOCK, Material.REDSTONE_ORE));
-                    statement.setInt(12, player.getStatistic(Statistic.MINE_BLOCK, Material.LAPIS_ORE));
-                    statement.setInt(13, player.getStatistic(Statistic.MINE_BLOCK, Material.IRON_ORE));
-                    statement.setInt(14, player.getStatistic(Statistic.MINE_BLOCK, Material.COAL_ORE));
-                    statement.setString(15, player.getUniqueId().toString());
+                    statement = connection.prepareStatement("UPDATE `player_settings` SET `privatemessages`=?, `sounds`=?, `globalchat`=?, `staffchat`=?, `staffchatview`=?, `staffscoreboard`=?, `rank`=? WHERE `player_uuid`='" + player.getUniqueId().toString() + "'");
+                    statement.setBoolean(1, baseUser.isMessagesVisible());
+                    statement.setBoolean(2, baseUser.isMessagingSounds());
+                    statement.setBoolean(3, baseUser.isGlobalChatVisible());
+                    statement.setBoolean(4, baseUser.isInStaffChat());
+                    statement.setBoolean(5, baseUser.isStaffChatVisible());
+                    statement.setBoolean(6, baseUser.isGlintEnabled());
+                    statement.setString(7, PermissionsExUtils.getRanks(player));
                     statement.executeUpdate();
                     statement.close();
                 }
@@ -100,44 +190,8 @@ public class StorageBackendMySQL implements StorageBackend {
         }.runTaskAsynchronously(Main.getInstance());
     }
 
-    public void insertKill(Player killer, Player dead) {
-        new BukkitRunnable() {
-            public void run() {
-                Connection connection = null;
-                PreparedStatement statement = null;
 
-                try {
-                    connection = StorageBackendMySQL.this.poolManager.getConnection();
-                    statement = connection.prepareStatement("INSERT INTO `hcf_kills` (`killer_name`, `killer_uuid`, `killer_faction`, `dead_name`, `dead_uuid`, `dead_faction`) VALUES (?, ?, ?, ?, ?, ?)");
-
-                    if(killer == null) {
-                        statement.setString(1, "");
-                        statement.setString(2, "environment");
-                        statement.setString(3, "");
-                    } else {
-                        statement.setString(1, killer.getName());
-                        statement.setString(2, killer.getUniqueId().toString());
-                        statement.setString(3, "wad");
-                    }
-                    statement.setString(4, dead.getName());
-                    statement.setString(5, dead.getUniqueId().toString());
-                    statement.setString(6, "wado");
-                    statement.executeUpdate();
-                    statement.close();
-                }
-                catch (SQLException e) {
-                    Main.getInstance().getLogger().severe("Failed insertKill -> " + killer.getName() + " & " + dead.getName());
-                    e.printStackTrace();
-                    this.cancel();
-                }
-                finally {
-                    poolManager.close(connection, statement, null);
-                }
-            }
-        }.runTaskAsynchronously(Main.getInstance());
-    }
-
-    @Override
+/*    @Override
     public void setDeathBanned(OfflinePlayer player, DeathBan deathBan) {
         new BukkitRunnable() {
             @Override
@@ -149,9 +203,9 @@ public class StorageBackendMySQL implements StorageBackend {
                     connection = poolManager.getConnection();
                     preparedStatement = connection.prepareStatement("INSERT INTO `hcf_deathbans` (player_uuid, death_time, expiration, death_point) VALUES (?, ?, ?, ?)");
                     preparedStatement.setString(1, player.getUniqueId().toString());
-                    preparedStatement.setTimestamp(2, deathBan.getDeathTime());
-                    preparedStatement.setTimestamp(3, deathBan.getExpireTime());
-                    preparedStatement.setString(4, LocationUtils.getString(deathBan.getDeathPoint()));
+                    preparedStatement.setString(2, "awdawd");
+                    preparedStatement.setString(3, "awdwa");
+                    preparedStatement.setString(4, "wadwad");
                     preparedStatement.executeUpdate();
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -162,7 +216,7 @@ public class StorageBackendMySQL implements StorageBackend {
         }.runTaskAsynchronously(Main.getInstance());
     }
 
-    @Override
+    //@Override
     public void removeDeathBan(OfflinePlayer player) {
         new BukkitRunnable() {
             @Override
@@ -184,7 +238,7 @@ public class StorageBackendMySQL implements StorageBackend {
         }.runTaskAsynchronously(Main.getInstance());
     }
 
-    @Override
+    //@Override
     public void loadDeathBans() {
         new BukkitRunnable() {
             @Override
@@ -199,8 +253,8 @@ public class StorageBackendMySQL implements StorageBackend {
                     resultSet = preparedStatement.executeQuery();
 
                     while(resultSet.next()) {
-                        DeathBan deathBan = new DeathBan(Bukkit.getOfflinePlayer(UUID.fromString(resultSet.getString("player_uuid"))), resultSet.getTimestamp("death_time"), resultSet.getTimestamp("expiration"), LocationUtils.getLocation(resultSet.getString("death_point")));
-                        Main.getInstance().getDeathBanManager().getDeathBanned().put(deathBan.getDead().getUniqueId(), deathBan);
+                        //DeathBan deathBan = new DeathBan(Bukkit.getOfflinePlayer(UUID.fromString(resultSet.getString("player_uuid"))), resultSet.getTimestamp("death_time"), resultSet.getTimestamp("expiration"), LocationUtils.getLocation(resultSet.getString("death_point")));
+                        //Main.getInstance().getDeathBanManager().getDeathBanned().put(deathBan.getDead().getUniqueId(), deathBan);
                     }
                 } catch (SQLException e) {
                     e.printStackTrace();
@@ -211,7 +265,7 @@ public class StorageBackendMySQL implements StorageBackend {
         }.runTaskAsynchronously(Main.getInstance());
     }
 
-    @Override
+    //@Override
     public void addLives(OfflinePlayer player, int amount) {
         new BukkitRunnable() {
             @Override
@@ -232,6 +286,6 @@ public class StorageBackendMySQL implements StorageBackend {
                 }
             }
         }.runTaskAsynchronously(Main.getInstance());
-    }
+    }*/
 
 }

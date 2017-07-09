@@ -18,23 +18,4 @@ public class DatabaseCredentials {
         this.databaseName = databaseName;
     }
 
-    public String getHostname() {
-        return hostname;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getDatabaseName() {
-        return databaseName;
-    }
 }

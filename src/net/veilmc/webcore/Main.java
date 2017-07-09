@@ -5,25 +5,26 @@ import net.veilmc.webcore.backend.DatabaseCredentials;
 import net.veilmc.webcore.backend.StorageBackend;
 import net.veilmc.webcore.backend.type.StorageBackendMySQL;
 import net.veilmc.webcore.commands.RegisterCommand;
-import net.veilmc.webcore.utils.BCrypt;
+import net.veilmc.webcore.utils.HashUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import net.veilmc.webcore.commands.InfoCommand;
+import net.veilmc.webcore.commands.SyncSettingsCommand;
 import net.veilmc.webcore.listeners.PlayerEvents;
 
 public class Main extends JavaPlugin {
-    @Getter private static String salt = BCrypt.gensalt();
     @Getter private static Main instance;
+    @Getter private HashUtils hashUtils;
     @Getter private StorageBackend storageBackend;
     private PluginManager manager = Bukkit.getServer().getPluginManager();
 
     @Override
     public void onEnable() {
         instance = this;
+        hashUtils = new HashUtils();
 
 
-        getCommand("info").setExecutor(new InfoCommand(this));
+        getCommand("syncsettings").setExecutor(new SyncSettingsCommand(this));
         getCommand("register").setExecutor(new RegisterCommand(this));
 
         //storageBackend = new StorageBackendMySQL(new DatabaseCredentials("158.69.123.169", 3306, "remote", "hyuK3tF5bMHfaxY8njVs7Mj19", "webcore"));
