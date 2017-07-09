@@ -5,3 +5,4 @@ author: sergivb01, ltd
 commands:
     info:
         description: example
+    register:
