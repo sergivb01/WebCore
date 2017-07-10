@@ -108,7 +108,6 @@ public class StorageBackendMySQL implements StorageBackend {
 
     @Override
     public boolean checkRegistered(Player player){
-        boolean isreg = false;
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
@@ -118,18 +117,17 @@ public class StorageBackendMySQL implements StorageBackend {
             preparedStatement = connection.prepareStatement("SELECT * FROM `player_credentials` WHERE `player_uuid`='" + player.getUniqueId().toString() + "'");
             resultSet = preparedStatement.executeQuery();
 
-            if(resultSet.isBeforeFirst()) {
-                if(!resultSet.getString("password").isEmpty()){
-                    isreg = true;
-                }
+            if(resultSet.next()){
+                return resultSet.getString("password").isEmpty() || resultSet.getString("password").equals("");
             }
+            return false;
+
         } catch (SQLException e) {
             e.printStackTrace();
-        } finally {
+        }finally {
             poolManager.close(connection, preparedStatement, resultSet);
         }
-
-        return isreg;
+        return true;
     }
 
     @Override

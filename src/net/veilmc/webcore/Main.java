@@ -6,6 +6,7 @@ import net.veilmc.webcore.backend.StorageBackend;
 import net.veilmc.webcore.backend.type.StorageBackendMySQL;
 import net.veilmc.webcore.commands.AboutSettingsCommand;
 import net.veilmc.webcore.commands.RegisterCommand;
+import net.veilmc.webcore.utils.BCrypt;
 import net.veilmc.webcore.utils.HashUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
@@ -35,10 +36,9 @@ public class Main extends JavaPlugin {
         instance = this;
         hashUtils = new HashUtils();
 
-
         getCommand("aboutsettings").setExecutor(new AboutSettingsCommand(this));
         getCommand("syncsettings").setExecutor(new SyncSettingsCommand(this));
-        getCommand("register").setExecutor(new RegisterCommand(this));
+        getCommand("wregister").setExecutor(new RegisterCommand(this));
 
         storageBackend = new StorageBackendMySQL(new DatabaseCredentials("158.69.123.169", 3306, "remote", "hyuK3tF5bMHfaxY8njVs7Mj19", "webcore"));
         //storageBackend = new StorageBackendMySQL(new DatabaseCredentials("localhost", 3306, "root", "sergivb01", "webcore"));
@@ -50,10 +50,6 @@ public class Main extends JavaPlugin {
     public void onDisable() {
 
         storageBackend.closeConnections();
-
-
-
-
         instance = null;
     }
 

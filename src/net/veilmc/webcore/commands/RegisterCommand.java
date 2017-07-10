@@ -34,7 +34,7 @@ public class RegisterCommand implements CommandExecutor {
             return false;
         }
 
-        if(main.getStorageBackend().checkRegistered(player)){
+        if(!main.getStorageBackend().checkRegistered(player)){
            player.sendMessage(ChatColor.RED + "You are already registered!");
             return false;
         }

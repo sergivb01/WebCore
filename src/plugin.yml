@@ -5,5 +5,5 @@ author: sergivb01, ltd
 commands:
     syncsettings:
         description: example
-    register:
+    wregister:
     aboutsettings:
