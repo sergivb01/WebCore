@@ -131,35 +131,6 @@ public class StorageBackendMySQL implements StorageBackend {
     }
 
     @Override
-    public HashMap<String, Boolean> getData(Player player){
-        HashMap<String, Boolean> settings = new HashMap<>();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-
-        try {
-            connection = poolManager.getConnection();
-            preparedStatement = connection.prepareStatement("SELECT * FROM `player_settings` WHERE `player_uuid`='" + player.getUniqueId().toString() + "'");
-            resultSet = preparedStatement.executeQuery();
-
-            settings.put("privatemessages", resultSet.getBoolean("privatemessages"));
-            settings.put("sounds", resultSet.getBoolean("sounds"));
-            settings.put("globalchat", resultSet.getBoolean("globalchat"));
-            settings.put("staffchat", resultSet.getBoolean("staffchat"));
-            settings.put("staffchatview", resultSet.getBoolean("staffchatview"));
-            settings.put("staffscoreboard", resultSet.getBoolean("staffscoreboard"));
-
-            preparedStatement.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        } finally {
-            poolManager.close(connection, preparedStatement, resultSet);
-        }
-
-        return settings;
-    }
-
-    @Override
     public void registerPlayer(Player player, String passwd){
         new BukkitRunnable() {
             public void run() {

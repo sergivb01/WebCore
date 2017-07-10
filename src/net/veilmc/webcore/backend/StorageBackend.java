@@ -14,8 +14,6 @@ public interface StorageBackend {
 
     boolean checkProfile(Player player);
 
-    HashMap<String, Boolean> getData(Player player);
-
     boolean checkRegistered(Player player);
 
     void createProfile(Player player);

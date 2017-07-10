@@ -23,9 +23,7 @@ public class AboutSettingsCommand implements CommandExecutor {
 
         Player p = (Player) sender;
 
-        for (Map.Entry<String,Boolean> entry : main.getStorageBackend().getData(p).entrySet()) {
-            p.sendMessage(ChatColor.AQUA + entry.getKey() + ": " + ChatColor.LIGHT_PURPLE + entry.getValue().toString());
-        }
+        p.sendMessage(ChatColor.RED + "Todo...");
 
 
         return true;
