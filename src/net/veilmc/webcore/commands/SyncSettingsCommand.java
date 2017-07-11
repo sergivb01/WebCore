@@ -19,16 +19,16 @@ public class SyncSettingsCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if(Bukkit.getOnlinePlayers().size() == 0){
-            sender.sendMessage(ChatColor.RED + "There are no players.");
+            sender.sendMessage(Main.PREFIX + ChatColor.RED + "There are no players.");
             return false;
         }
 
         for (Player player: Bukkit.getOnlinePlayers()) {
             main.getStorageBackend().saveSettings(player);
-            Bukkit.getConsoleSender().sendMessage(ChatColor.AQUA + "Settings of " + player.getName() + " have been saved.");
+            Bukkit.getConsoleSender().sendMessage(Main.PREFIX + ChatColor.AQUA + "Settings of " + player.getName() + " have been saved.");
         }
 
-        sender.sendMessage(ChatColor.AQUA + "Settings have been synced.");
+        sender.sendMessage(Main.PREFIX + ChatColor.AQUA + "Settings have been synced.");
 
         return true;
     }

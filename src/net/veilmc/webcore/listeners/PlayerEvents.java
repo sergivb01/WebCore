@@ -21,9 +21,9 @@ public class PlayerEvents implements Listener{
 
         if(!main.getStorageBackend().checkProfile(p)){
             main.getStorageBackend().createProfile(p);
-            p.sendMessage(ChatColor.GOLD + "Your profile has been created!");
+            p.sendMessage(Main.PREFIX + ChatColor.GOLD + "Your profile has been created!");
         }else{
-            p.sendMessage(ChatColor.RED + "You profile already exists, not creating a new one...");
+            p.sendMessage(ChatColor.RED + "You already have an account.");
         }
 
 

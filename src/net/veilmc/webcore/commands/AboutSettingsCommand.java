@@ -17,13 +17,13 @@ public class AboutSettingsCommand implements CommandExecutor {
 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if(!(sender instanceof Player)){
-            sender.sendMessage(ChatColor.RED + "You may not execute that command.");
+            sender.sendMessage(Main.PREFIX + ChatColor.RED + "You may not execute that command.");
             return false;
         }
 
         Player p = (Player) sender;
 
-        p.sendMessage(ChatColor.RED + "Todo...");
+        p.sendMessage(Main.PREFIX + ChatColor.RED + "Todo...");
 
 
         return true;

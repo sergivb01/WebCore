@@ -20,6 +20,7 @@ public class Main extends JavaPlugin {
     @Getter private StorageBackend storageBackend;
     private PluginManager manager = Bukkit.getServer().getPluginManager();
 
+    public static String PREFIX = "§6§lVeilMC §7» §r";
     /*
                             TODO: (Check list :P)
         * Password strength checker in register process.
